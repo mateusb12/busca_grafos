@@ -9,6 +9,12 @@ class GraphCreator:
     def __init__(self):
         self.raw = nx.Graph()
 
+    def handle_graph_creation(self, **kwargs):
+        if kwargs["graph_type"] == "random":
+            return self.create_random_albert_graph()
+        elif kwargs["graph_type"] == "default":
+            return self.create_default_graph()
+
     @staticmethod
     def handle_adjacency(input_graph: NxGraph, color_table: dict):
         for node in input_graph.adjacency():
@@ -128,7 +134,7 @@ class GraphSearch:
 
 
 gc = GraphCreator()
-G = gc.create_default_graph()
+G = gc.handle_graph_creation(graph_type="random")
 gs = GraphSearch(G)
 result = gs.breadth_first_search(0, 12)
-gs.assemble_gif("albert_gif.gif")
+gs.assemble_gif("random_albert_gif.gif")
