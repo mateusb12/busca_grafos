@@ -47,8 +47,20 @@ class GraphSearch:
         self.save_graph()
         plt.show()
 
+    def reset_graph(self):
+        for node in self.graph.nodes:
+            self.graph.nodes[node]["color"] = "mediumblue"
+            self.graph.nodes[node]["is_visited"] = False
+
+    def is_node_leaf(self, input_node: dict) -> bool:
+        return all(
+            self.graph.nodes[item]["is_visited"]
+            for item in input_node["neighbours"]
+        )
+
     def breadth_first_search(self, origin: int, target: int) -> dict:
         stack = [origin]
+        expanded_nodes = []
 
         while stack:
             current_node = stack.pop(0)
@@ -57,20 +69,49 @@ class GraphSearch:
             if current_node == target:
                 self.graph.nodes[current_node]["color"] = "green"
                 self.draw_graph()
-                return self.graph.nodes[current_node]
-            self.graph.nodes[current_node]["is_visited"] = True
-            for neighbour in self.graph.nodes[current_node]["neighbours"]:
-                if not self.graph.nodes[neighbour]["is_visited"] and neighbour not in stack:
-                    self.graph.nodes[neighbour]["color"] = "orange"
-                    stack.append(neighbour)
-                    self.draw_graph()
-            self.graph.nodes[current_node]["color"] = "gray"
+                backtrack_list = []
+                c = current_node
+                while self.graph.nodes[c]["parent"] is not None:
+                    backtrack_list.append(c)
+                    c = self.graph.nodes[c]["parent"]
+                backtrack_list.append(origin)
+                backtrack_list.reverse()
+                return {"target_node": self.graph.nodes[current_node],
+                        "path": backtrack_list,
+                        "expanded_nodes": expanded_nodes}
+            else:
+                self.graph.nodes[current_node]["is_visited"] = True
+                for neighbour in self.graph.nodes[current_node]["neighbours"]:
+                    if not self.graph.nodes[neighbour]["is_visited"] and neighbour not in stack:
+                        self.graph.nodes[neighbour]["color"] = "orange"
+                        stack.append(neighbour)
+                        expanded_nodes.append(neighbour)
+                        self.graph.nodes[neighbour]["parent"] = current_node
+                        self.draw_graph()
+                self.graph.nodes[current_node]["color"] = "gray"
 
+        return {None: None}
+
+    def depth_first_search(self, origin: int, target: int) -> dict:
+        n = len(self.graph.nodes)
+
+        def dfs(at):
+            aux = self.graph.nodes[at]
+            neighbours = self.graph.nodes[at]["neighbours"]
+            if self.graph.nodes[at]["label"] == target:
+                return target
+            else:
+                self.graph.nodes[at]["is_visited"] = True
+                for neighbour in neighbours:
+                    if self.graph.nodes[neighbour]["is_visited"] is False:
+                        return dfs(neighbour)
+
+        dfs_result = dfs(origin)
         return {None: None}
 
 
 gc = GraphCreator()
 G = gc.create_default_graph(GraphType.bfs)
 gs = GraphSearch(G)
-result = gs.breadth_first_search(0, 12)
-gs.assemble_gif("breadth_first_search.gif")
+result = gs.breadth_first_search(0, 4)
+gs.assemble_gif("breadth_first_search2.gif")

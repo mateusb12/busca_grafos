@@ -13,12 +13,6 @@ class GraphCreator:
     def __init__(self):
         self.raw = nx.Graph()
 
-    def handle_graph_creation(self, **kwargs):
-        if kwargs["graph_type"] == "random":
-            return self.create_random_albert_graph()
-        elif kwargs["graph_type"] == "default":
-            return self.create_default_graph()
-
     @staticmethod
     def handle_adjacency(input_graph: NxGraph, color_table: dict):
         for node in input_graph.adjacency():
@@ -29,6 +23,8 @@ class GraphCreator:
             aux["degree"] = len(content)
             aux["is_visited"] = False
             aux["color"] = color_table[index]
+            aux["label"] = index
+            aux["parent"] = None
 
     def create_random_albert_graph(self) -> NxGraph:
         albert = nx.random_graphs.barabasi_albert_graph(60, 5)
