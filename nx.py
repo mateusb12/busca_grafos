@@ -52,11 +52,15 @@ class GraphSearch:
             self.graph.nodes[node]["color"] = "mediumblue"
             self.graph.nodes[node]["is_visited"] = False
 
-    def is_node_leaf(self, input_node: dict) -> bool:
-        return all(
-            self.graph.nodes[item]["is_visited"]
-            for item in input_node["neighbours"]
-        )
+    def generate_backtrack_list(self, origin_node: int, target_node: int) -> list:
+        backtrack_list = []
+        c = target_node
+        while self.graph.nodes[c]["parent"] is not None:
+            backtrack_list.append(c)
+            c = self.graph.nodes[c]["parent"]
+        backtrack_list.append(origin_node)
+        backtrack_list.reverse()
+        return backtrack_list
 
     def breadth_first_search(self, origin: int, target: int) -> dict:
         stack = [origin]
@@ -69,13 +73,7 @@ class GraphSearch:
             if current_node == target:
                 self.graph.nodes[current_node]["color"] = "green"
                 self.draw_graph()
-                backtrack_list = []
-                c = current_node
-                while self.graph.nodes[c]["parent"] is not None:
-                    backtrack_list.append(c)
-                    c = self.graph.nodes[c]["parent"]
-                backtrack_list.append(origin)
-                backtrack_list.reverse()
+                backtrack_list = self.generate_backtrack_list(origin, target)
                 return {"target_node": self.graph.nodes[current_node],
                         "path": backtrack_list,
                         "expanded_nodes": expanded_nodes}
@@ -92,26 +90,52 @@ class GraphSearch:
 
         return {None: None}
 
+    def is_node_leaf(self, input_node: int) -> bool:
+        return bool(
+            len(self.graph.nodes[input_node]["neighbours"]) == 1
+            and self.graph.nodes[self.graph.nodes[input_node]["neighbours"][0]][
+                "is_visited"
+            ]
+        )
+
     def depth_first_search(self, origin: int, target: int) -> dict:
         n = len(self.graph.nodes)
+        expanded_nodes = []
 
         def dfs(at):
             aux = self.graph.nodes[at]
             neighbours = self.graph.nodes[at]["neighbours"]
+            is_leaf = self.is_node_leaf(at)
             if self.graph.nodes[at]["label"] == target:
+                # self.draw_graph()
                 return target
             else:
                 self.graph.nodes[at]["is_visited"] = True
+                if is_leaf:
+                    return dfs(aux["parent"])
                 for neighbour in neighbours:
                     if self.graph.nodes[neighbour]["is_visited"] is False:
+                        expanded_nodes.append(neighbour)
+                        self.graph.nodes[neighbour]["parent"] = at
+                        self.graph.nodes[neighbour]["color"] = "red"
+                        # self.draw_graph()
                         return dfs(neighbour)
+                    else:
+                        if self.graph.nodes[neighbour]["color"] != "grey":
+                            self.graph.nodes[neighbour]["color"] = "grey"
+                            # self.draw_graph()
 
-        dfs_result = dfs(origin)
+        dfs_target = dfs(origin)
+        dfs_result = {"target_node": self.graph.nodes[dfs_target],
+                      "path": self.generate_backtrack_list(origin, target),
+                      "expanded_nodes": expanded_nodes}
         return {None: None}
 
 
 gc = GraphCreator()
-G = gc.create_default_graph(GraphType.bfs)
+G = gc.create_default_graph(GraphType.dfs)
 gs = GraphSearch(G)
-result = gs.breadth_first_search(0, 4)
-gs.assemble_gif("breadth_first_search2.gif")
+result = gs.depth_first_search(0, 10)
+gs.assemble_gif("depth_first_search.gif")
+# apple = 5 + 2
+

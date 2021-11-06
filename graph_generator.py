@@ -19,12 +19,12 @@ class GraphCreator:
             index = node[0]
             content = node[1]
             aux = input_graph.nodes[index]
+            aux["label"] = index
             aux["neighbours"] = list(content.keys())
+            aux["parent"] = None
             aux["degree"] = len(content)
             aux["is_visited"] = False
             aux["color"] = color_table[index]
-            aux["label"] = index
-            aux["parent"] = None
 
     def create_random_albert_graph(self) -> NxGraph:
         albert = nx.random_graphs.barabasi_albert_graph(60, 5)
