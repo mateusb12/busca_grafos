@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from graph_generator import GraphCreator, GraphType
 
 
+# noinspection PyAttributeOutsideInit
 class GraphSearch:
     def __init__(self, graph: NxGraph):
         self.graph = graph
@@ -101,41 +102,46 @@ class GraphSearch:
     def depth_first_search(self, origin: int, target: int) -> dict:
         n = len(self.graph.nodes)
         expanded_nodes = []
+        self.dfs_target_node = None
 
         def dfs(at):
             aux = self.graph.nodes[at]
             neighbours = self.graph.nodes[at]["neighbours"]
             is_leaf = self.is_node_leaf(at)
             if self.graph.nodes[at]["label"] == target:
-                # self.draw_graph()
-                return target
+                self.graph.nodes[at]["color"] = "green"
+                self.draw_graph()
+                self.dfs_target_node = aux
+                return None
             else:
                 self.graph.nodes[at]["is_visited"] = True
+                self.graph.nodes[at]["color"] = "red"
                 if is_leaf:
-                    return dfs(aux["parent"])
+                    self.graph.nodes[at]["color"] = "grey"
+                self.draw_graph()
                 for neighbour in neighbours:
                     if self.graph.nodes[neighbour]["is_visited"] is False:
                         expanded_nodes.append(neighbour)
                         self.graph.nodes[neighbour]["parent"] = at
-                        self.graph.nodes[neighbour]["color"] = "red"
-                        # self.draw_graph()
-                        return dfs(neighbour)
+                        self.graph.nodes[neighbour]["color"] = "orange"
+                        self.draw_graph()
+                        dfs(neighbour)
                     else:
                         if self.graph.nodes[neighbour]["color"] != "grey":
                             self.graph.nodes[neighbour]["color"] = "grey"
-                            # self.draw_graph()
+                            self.draw_graph()
 
-        dfs_target = dfs(origin)
-        dfs_result = {"target_node": self.graph.nodes[dfs_target],
+        dfs(origin)
+        dfs_result = {"target_node": self.dfs_target_node,
                       "path": self.generate_backtrack_list(origin, target),
                       "expanded_nodes": expanded_nodes}
         return {None: None}
 
 
 gc = GraphCreator()
-G = gc.create_default_graph(GraphType.dfs)
+# G = gc.create_default_graph(GraphType.dfs)
+G = gc.create_random_albert_graph()
 gs = GraphSearch(G)
 result = gs.depth_first_search(0, 10)
-gs.assemble_gif("depth_first_search.gif")
+# gs.assemble_gif("depth_first_search.gif")
 # apple = 5 + 2
-

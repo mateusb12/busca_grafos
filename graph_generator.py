@@ -27,7 +27,7 @@ class GraphCreator:
             aux["color"] = color_table[index]
 
     def create_random_albert_graph(self) -> NxGraph:
-        albert = nx.random_graphs.barabasi_albert_graph(60, 5)
+        albert = nx.random_graphs.barabasi_albert_graph(20, 2)
         keys = list(albert.nodes)
         default_color = "mediumblue"
         values = [default_color] * len(keys)
