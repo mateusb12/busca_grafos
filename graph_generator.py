@@ -1,7 +1,10 @@
+import itertools
+import random
 from enum import Enum
 
 import networkx as nx
 import networkx.classes.graph as NxGraph
+from matplotlib import pyplot as plt
 
 
 class GraphType(Enum):
@@ -86,13 +89,37 @@ class GraphCreator:
         return NG
 
     @staticmethod
+    def create_random_weighted_graph():
+        new_G = nx.DiGraph()
+        weighted_edge_list = [(u, v, random.randint(1, 10)) for u, v in itertools.permutations(range(5), 2)]
+        new_G.add_weighted_edges_from(weighted_edge_list)
+        new_G.edges(data=True)
+        return new_G
+
+    @staticmethod
     def create_default_colors() -> dict:
         return {0: "red", 1: "blue", 2: "green", 3: "yellow", 4: "purple",
                 5: "orange", 6: "brown", 7: "pink", 8: "cyan", 9: "black",
                 10: "grey", 11: "magenta", 12: "lime"}
 
+    @staticmethod
+    def plot_weighted_graph(input_g: nx.DiGraph):
+        fig, ax = plt.subplots()
+        labels = nx.get_edge_attributes(input_g, 'weight')
+        pos = nx.spring_layout(input_g)
+        nx.draw(G, pos, with_labels=1, node_size=500, font_weight="bold",
+                node_color="mediumblue", font_color='white', edge_color='black')
+        nx.draw_networkx_edge_labels(G, pos, edge_labels=labels,
+                                     font_color='indigo', font_size=14,
+                                     alpha=0.8, rotate=False)
+        plt.show()
+
 
 if __name__ == "__main__":
     graph_creator = GraphCreator()
-    G = graph_creator.create_default_graph(GraphType.dfs)
+    G = graph_creator.create_random_weighted_graph()
+    graph_creator.plot_weighted_graph(G)
+    for node in G.nodes():
+        print(G[node])
+    plt.show()
     apple = 5 + 3

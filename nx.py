@@ -143,5 +143,5 @@ gc = GraphCreator()
 G = gc.create_random_albert_graph()
 gs = GraphSearch(G)
 result = gs.depth_first_search(0, 10)
-# gs.assemble_gif("depth_first_search.gif")
+gs.assemble_gif("depth_first_search.gif")
 # apple = 5 + 2
