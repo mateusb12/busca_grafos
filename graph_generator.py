@@ -90,11 +90,19 @@ class GraphCreator:
 
   
     def create_random_weighted_graph():
-        new_G = nx.DiGraph()
-        weighted_edge_list = [(u, v, random.randint(1, 10)) for u, v in itertools.permutations(range(5), 2)]
-        new_G.add_weighted_edges_from(weighted_edge_list)
-        new_G.edges(data=True)
-        print(new_G)
+        # new_G = nx.DiGraph()
+        # permutations = list(itertools.permutations(range(5), 2))
+        # weighted_edge_list = [(u, v, random.randint(1, 10)) for u, v in permutations]
+        # new_G.add_weighted_edges_from(weighted_edge_list)
+        # new_G.edges(data=True)
+        # new_G = nx.chvatal_graph()
+        new_G = nx.fast_gnp_random_graph(10, 0.35)
+        for e in new_G.edges():
+            new_G[e[0]][e[1]]["weight"] = random.randint(1, 10)
+        isolates = list(nx.isolates(new_G))
+        if isolates:
+            for isolate in isolates:
+                new_G.remove_node(isolate)
         return new_G
 
   
@@ -111,7 +119,7 @@ class GraphCreator:
         nx.draw(G, pos, with_labels=1, node_size=500, font_weight="bold",
                 node_color="mediumblue", font_color='white', edge_color='black')
         nx.draw_networkx_edge_labels(G, pos, edge_labels=labels,
-                                     font_color='indigo', font_size=14,
+                                     font_color='indigo', font_size=11,
                                      alpha=0.8, rotate=False)
         plt.show()
 
@@ -120,7 +128,7 @@ if __name__ == "__main__":
     graph_creator = GraphCreator()
     G = graph_creator.create_random_weighted_graph()
     graph_creator.plot_weighted_graph(G)
-    for node in G.nodes():
-        print(G[node])
+    # for node in G.nodes():
+    #     print(G[node])
     plt.show()
     apple = 5 + 3
