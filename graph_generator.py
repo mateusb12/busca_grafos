@@ -14,9 +14,6 @@ class GraphType(Enum):
     dfs = 2
 
 
-
-
-
 class GraphCreator:
     def __init__(self):
         self.raw = nx.Graph()
@@ -128,11 +125,33 @@ class GraphCreator:
         self.handle_adjacency(new_G, colors)
         return new_G
 
+    def create_squared_graph(self, **kwargs) -> NxGraph:
+        width = kwargs["width"]
+        height = kwargs["height"]
+        holes = kwargs["holes"]
+        seed = kwargs["seed"] if "seed" in kwargs else None
+        random.seed(seed)
+        new_g = nx.grid_2d_graph(width, height)
+        nodes_list = new_g.nodes()
+        random_sample = random.sample(nodes_list, holes)
+        new_g.remove_nodes_from(random_sample)
+        colors = self.generate_color_table("mediumblue", new_g)
+        self.handle_adjacency(new_g, colors)
+        return new_g
+
     @staticmethod
-    def get_medium_blue_table(input_g: NxGraph):
+    def plot_squared_graph(input_g: NxGraph):
+        pos = {(x, y): (y, -x) for x, y in input_g.nodes()}
+        nx.draw(input_g, pos=pos,
+                node_color='darkslateblue', font_color='white',
+                with_labels=True,
+                node_size=600, font_size=11)
+        plt.show()
+
+    @staticmethod
+    def generate_color_table(color_name: str, input_g: NxGraph):
         keys = list(input_g.nodes)
-        default_color = "mediumblue"
-        values = [default_color] * len(keys)
+        values = [color_name] * len(keys)
         return dict(zip(keys, values))
 
     def create_raw_weighted_graph(self) -> NxGraph:
@@ -149,7 +168,7 @@ class GraphCreator:
         new_G.add_edge(5, 8, weight=4)
         new_G.add_edge(5, 9, weight=7)
         new_G.add_edge(9, 11, weight=3)
-        self.handle_adjacency(new_G, self.get_medium_blue_table(new_G))
+        self.handle_adjacency(new_G, self.generate_color_table("mediumblue", new_G))
         return new_G
 
     @staticmethod
@@ -162,7 +181,7 @@ class GraphCreator:
     def plot_weighted_graph(input_g: nx.DiGraph):
         fig, ax = plt.subplots()
         labels = nx.get_edge_attributes(input_g, 'weight')
-        pos = nx.spring_layout(input_g, k=0.3*1/np.sqrt(len(input_g.nodes())))
+        pos = nx.spring_layout(input_g, k=0.3 * 1 / np.sqrt(len(input_g.nodes())))
         nx.draw(input_g, pos=pos, with_labels=1, node_size=500, font_weight="bold",
                 node_color="mediumblue", font_color='white', edge_color='black')
         nx.draw_networkx_edge_labels(input_g, pos=pos, edge_labels=labels,

@@ -2,6 +2,7 @@ import collections
 import os
 import random
 from collections import OrderedDict
+from typing import Tuple
 
 import imageio
 import networkx as nx
@@ -233,6 +234,11 @@ class GraphSearch:
             new_index = self.priority_queue.pop(0)[0]
             current_index = new_index
 
+        return {None: None}
+
+    def a_star_search(self, origin: Tuple[int, int], target: Tuple[int, int]) -> dict:
+        origin_node = self.G.nodes[origin]
+        target_node = self.G.nodes[target]
         return {None: None}
 
 

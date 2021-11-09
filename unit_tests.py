@@ -1,5 +1,10 @@
+import random
+
+from matplotlib import pyplot as plt
+
 from graph_generator import GraphCreator, GraphType
 from nx import GraphSearch
+import networkx as nx
 
 
 class GraphTest:
@@ -28,6 +33,14 @@ class GraphTest:
         result = gs.uniform_cost_search(0, 5)
         gs.assemble_gif("uniform_cost_search.gif")
 
+    def test_a_star(self, **kwargs):
+        G = self.gc.create_squared_graph(width=6, height=6, holes=7, seed=5)
+        self.gc.plot_squared_graph(G)
+        gs = GraphSearch(G)
+        gs.a_star_search((0, 0), (5, 5))
+        for i in G.nodes():
+            print(i, G.nodes[i])
+
 
 gt = GraphTest()
-gt.test_dfs()
+gt.test_a_star()
