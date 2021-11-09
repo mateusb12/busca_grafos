@@ -47,8 +47,8 @@ class GraphCreator:
             aux = random.choice(list(edge[1].values())).keys()
             return "weight" in aux
 
-    def create_random_albert_graph(self) -> NxGraph:
-        albert = nx.random_graphs.barabasi_albert_graph(20, 2)
+    def create_random_albert_graph(self, input_size: int = 20) -> NxGraph:
+        albert = nx.random_graphs.barabasi_albert_graph(input_size, 2)
         keys = list(albert.nodes)
         default_color = "mediumblue"
         values = [default_color] * len(keys)

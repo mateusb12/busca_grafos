@@ -7,13 +7,15 @@ class GraphTest:
         self.gc = GraphCreator()
 
     def test_bfs(self):
-        G = self.gc.create_default_graph(GraphType.bfs)
+        # G = self.gc.create_default_graph(GraphType.bfs)
+        G = self.gc.create_random_albert_graph(34)
         gs = GraphSearch(G)
         result = gs.breadth_first_search(1, 5)
         gs.assemble_gif("breadth_first_search.gif")
 
     def test_dfs(self):
-        G = self.gc.create_default_graph(GraphType.dfs)
+        G = self.gc.create_random_albert_graph(34)
+        # G = self.gc.create_default_graph(GraphType.dfs)
         gs = GraphSearch(G)
         result = gs.depth_first_search(0, 4)
         gs.assemble_gif("depth_first_search.gif")
@@ -28,4 +30,4 @@ class GraphTest:
 
 
 gt = GraphTest()
-gt.test_uniform_cost()
+gt.test_dfs()
