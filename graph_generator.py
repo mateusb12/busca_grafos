@@ -176,7 +176,5 @@ if __name__ == "__main__":
     # G = graph_creator.create_default_graph(GraphType.dfs)
     G = graph_creator.create_random_weighted_graph(size=10, probability=0.35, seed=7)
     graph_creator.plot_weighted_graph(G)
-    # for node in G.nodes():
-    #     print(G[node])
     plt.show()
     apple = 5 + 3

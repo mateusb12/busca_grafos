@@ -9,7 +9,7 @@ import networkx.classes.graph as NxGraph
 import matplotlib.pyplot as plt
 import numpy as np
 
-from graph_generator import GraphCreator, GraphType
+from graph_generator import GraphCreator
 from priority_dict import PriorityList
 
 

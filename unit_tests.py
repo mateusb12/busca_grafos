@@ -25,7 +25,6 @@ class GraphTest:
         # self.gc.plot_weighted_graph(G)
         result = gs.uniform_cost_search(0, 5)
         gs.assemble_gif("uniform_cost_search.gif")
-        apple = 5 + 2
 
 
 gt = GraphTest()
