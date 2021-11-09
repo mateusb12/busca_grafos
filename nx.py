@@ -68,6 +68,16 @@ class GraphSearch:
         self.save_graph()
         plt.show()
 
+    def draw_squared_graph(self):
+        pos = {(x, y): (y, -x) for x, y in self.G.nodes()}
+        raw_colors = [n[1]['color'] for n in self.G.nodes(data=True)]
+        nx.draw(self.G, pos=pos,
+                node_color=raw_colors, font_color='white',
+                with_labels=True,
+                node_size=600, font_size=11)
+        self.save_graph()
+        plt.show()
+
     def reset_graph(self):
         for nd in self.G.nodes:
             self.G.nodes[nd]["color"] = "mediumblue"
@@ -90,14 +100,14 @@ class GraphSearch:
         backtrack_list.reverse()
         return backtrack_list
 
-    def breadth_first_search(self, origin: int, target: int) -> dict:
+    def breadth_first_search(self, origin, target) -> dict:
         stack = [origin]
         expanded_nodes = []
 
         while stack:
             current_node = stack.pop(0)
             self.G.nodes[current_node]["color"] = "red"
-            self.draw_graph()
+            self.draw_squared_graph()
             if current_node == target:
                 self.G.nodes[current_node]["color"] = "green"
                 self.draw_graph()
@@ -113,7 +123,7 @@ class GraphSearch:
                         stack.append(neighbour)
                         expanded_nodes.append(neighbour)
                         self.G.nodes[neighbour]["parent"] = current_node
-                        self.draw_graph()
+                        self.draw_squared_graph()
                 self.G.nodes[current_node]["color"] = "gray"
 
         return {None: None}
@@ -137,7 +147,7 @@ class GraphSearch:
             is_leaf = self.is_node_leaf(at)
             if self.G.nodes[at]["label"] == target:
                 self.G.nodes[at]["color"] = "green"
-                self.draw_graph()
+                self.draw_squared_graph()
                 self.dfs_target_node = aux
                 return None
             else:
@@ -145,18 +155,18 @@ class GraphSearch:
                 self.G.nodes[at]["color"] = "red"
                 if is_leaf:
                     self.G.nodes[at]["color"] = "grey"
-                self.draw_graph()
+                self.draw_squared_graph()
                 for neighbour in neighbours:
                     if self.G.nodes[neighbour]["is_visited"] is False:
                         expanded_nodes.append(neighbour)
                         self.G.nodes[neighbour]["parent"] = at
                         self.G.nodes[neighbour]["color"] = "orange"
-                        self.draw_graph()
+                        self.draw_squared_graph()
                         dfs(neighbour)
                     else:
                         if self.G.nodes[neighbour]["color"] != "grey":
                             self.G.nodes[neighbour]["color"] = "grey"
-                            self.draw_graph()
+                            self.draw_squared_graph()
 
         dfs(origin)
         dfs_result = {"target_node": self.dfs_target_node,

@@ -1,5 +1,4 @@
 import random
-
 from matplotlib import pyplot as plt
 
 from graph_generator import GraphCreator, GraphType
@@ -12,17 +11,23 @@ class GraphTest:
         self.gc = GraphCreator()
 
     def test_bfs(self):
-        # G = self.gc.create_default_graph(GraphType.bfs)
-        G = self.gc.create_random_albert_graph(34)
+        G = self.gc.create_squared_graph(width=12, height=12, holes=30,
+                                         seed=150, color="darkslateblue")
+        self.gc.plot_squared_graph(G)
         gs = GraphSearch(G)
-        result = gs.breadth_first_search(1, 5)
+        result = gs.breadth_first_search((0, 0), (11, 11))
         gs.assemble_gif("breadth_first_search.gif")
 
     def test_dfs(self):
-        G = self.gc.create_random_albert_graph(34)
-        # G = self.gc.create_default_graph(GraphType.dfs)
+        # G = self.gc.create_random_albert_graph(34)
+        # # G = self.gc.create_default_graph(GraphType.dfs)
+        # gs = GraphSearch(G)
+        # result = gs.depth_first_search(0, 4)
+        G = self.gc.create_squared_graph(width=12, height=12, holes=30,
+                                         seed=150, color="darkslateblue")
+        self.gc.plot_squared_graph(G)
         gs = GraphSearch(G)
-        result = gs.depth_first_search(0, 4)
+        result = gs.depth_first_search((0, 0), (11, 11))
         gs.assemble_gif("depth_first_search.gif")
 
     def test_uniform_cost(self):
@@ -34,13 +39,15 @@ class GraphTest:
         gs.assemble_gif("uniform_cost_search.gif")
 
     def test_a_star(self, **kwargs):
-        G = self.gc.create_squared_graph(width=6, height=6, holes=7, seed=5)
+        G = self.gc.create_squared_graph(width=12, height=12, holes=30,
+                                         seed=150, color="darkslateblue")
         self.gc.plot_squared_graph(G)
         gs = GraphSearch(G)
-        gs.a_star_search((0, 0), (5, 5))
-        for i in G.nodes():
-            print(i, G.nodes[i])
+        gs.breadth_first_search((0, 0), (11, 11))
+        # gs.a_star_search((0, 0), (5, 5))
+        # for i in G.nodes():
+        #     print(i, G.nodes[i])
 
 
 gt = GraphTest()
-gt.test_a_star()
+gt.test_dfs()

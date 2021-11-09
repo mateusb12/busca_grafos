@@ -130,12 +130,13 @@ class GraphCreator:
         height = kwargs["height"]
         holes = kwargs["holes"]
         seed = kwargs["seed"] if "seed" in kwargs else None
+        color = kwargs["color"] if "color" in kwargs else "mediumblue"
         random.seed(seed)
         new_g = nx.grid_2d_graph(width, height)
         nodes_list = new_g.nodes()
         random_sample = random.sample(nodes_list, holes)
         new_g.remove_nodes_from(random_sample)
-        colors = self.generate_color_table("mediumblue", new_g)
+        colors = self.generate_color_table(color, new_g)
         self.handle_adjacency(new_g, colors)
         return new_g
 
