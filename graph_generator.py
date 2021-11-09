@@ -1,9 +1,11 @@
 import itertools
 import random
+from collections import OrderedDict
 from enum import Enum
 
 import networkx as nx
 import networkx.classes.graph as NxGraph
+import numpy as np
 from matplotlib import pyplot as plt
 
 
@@ -12,12 +14,16 @@ class GraphType(Enum):
     dfs = 2
 
 
+
+
+
 class GraphCreator:
     def __init__(self):
         self.raw = nx.Graph()
 
     @staticmethod
     def handle_adjacency(input_graph: NxGraph, color_table: dict):
+        weighted = GraphCreator.is_graph_weighted(input_graph)
         for node in input_graph.adjacency():
             index = node[0]
             content = node[1]
@@ -28,6 +34,18 @@ class GraphCreator:
             aux["degree"] = len(content)
             aux["is_visited"] = False
             aux["color"] = color_table[index]
+
+            if weighted:
+                aux["connections"] = {}
+                for end_node, connection in content.items():
+                    aux["connections"][end_node] = connection["weight"]
+                aux["distance_to_origin"] = 0
+
+    @staticmethod
+    def is_graph_weighted(input_graph: NxGraph) -> bool:
+        for edge in input_graph.adjacency():
+            aux = random.choice(list(edge[1].values())).keys()
+            return "weight" in aux
 
     def create_random_albert_graph(self) -> NxGraph:
         albert = nx.random_graphs.barabasi_albert_graph(20, 2)
@@ -88,21 +106,50 @@ class GraphCreator:
         self.handle_adjacency(NG, colors)
         return NG
 
-    @staticmethod
-    def create_random_weighted_graph():
-        # new_G = nx.DiGraph()
-        # permutations = list(itertools.permutations(range(5), 2))
-        # weighted_edge_list = [(u, v, random.randint(1, 10)) for u, v in permutations]
-        # new_G.add_weighted_edges_from(weighted_edge_list)
-        # new_G.edges(data=True)
-        # new_G = nx.chvatal_graph()
-        new_G = nx.fast_gnp_random_graph(10, 0.35)
+    def create_random_weighted_graph(self, size=10, probability=0.5, seed=None, **kwargs):
+        if "size" in kwargs:
+            size = kwargs["size"]
+        if "probability" in kwargs:
+            probability = kwargs["probability"]
+        if "seed" in kwargs:
+            seed = kwargs["seed"]
+        new_G = nx.fast_gnp_random_graph(size, probability, seed)
         for e in new_G.edges():
-            new_G[e[0]][e[1]]["weight"] = random.randint(1, 10)
+            new_G[e[0]][e[1]]["weight"] = random.randint(12, 20)
+        new_G[1][8]["weight"] = 36
         isolates = list(nx.isolates(new_G))
         if isolates:
             for isolate in isolates:
                 new_G.remove_node(isolate)
+        keys = list(new_G.nodes)
+        default_color = "mediumblue"
+        values = [default_color] * len(keys)
+        colors = dict(zip(keys, values))
+        self.handle_adjacency(new_G, colors)
+        return new_G
+
+    @staticmethod
+    def get_medium_blue_table(input_g: NxGraph):
+        keys = list(input_g.nodes)
+        default_color = "mediumblue"
+        values = [default_color] * len(keys)
+        return dict(zip(keys, values))
+
+    def create_raw_weighted_graph(self) -> NxGraph:
+        new_G = nx.Graph()
+        new_G.add_edge(0, 1, weight=4)
+        new_G.add_edge(0, 2, weight=7)
+        new_G.add_edge(1, 3, weight=3)
+        new_G.add_edge(1, 4, weight=6)
+        new_G.add_edge(3, 6, weight=4)
+        new_G.add_edge(3, 7, weight=2)
+        new_G.add_edge(7, 10, weight=6)
+        new_G.add_edge(0, 2, weight=7)
+        new_G.add_edge(2, 5, weight=2)
+        new_G.add_edge(5, 8, weight=4)
+        new_G.add_edge(5, 9, weight=7)
+        new_G.add_edge(9, 11, weight=3)
+        self.handle_adjacency(new_G, self.get_medium_blue_table(new_G))
         return new_G
 
     @staticmethod
@@ -115,10 +162,10 @@ class GraphCreator:
     def plot_weighted_graph(input_g: nx.DiGraph):
         fig, ax = plt.subplots()
         labels = nx.get_edge_attributes(input_g, 'weight')
-        pos = nx.spring_layout(input_g)
-        nx.draw(G, pos, with_labels=1, node_size=500, font_weight="bold",
+        pos = nx.spring_layout(input_g, k=0.3*1/np.sqrt(len(input_g.nodes())))
+        nx.draw(input_g, pos=pos, with_labels=1, node_size=500, font_weight="bold",
                 node_color="mediumblue", font_color='white', edge_color='black')
-        nx.draw_networkx_edge_labels(G, pos, edge_labels=labels,
+        nx.draw_networkx_edge_labels(input_g, pos=pos, edge_labels=labels,
                                      font_color='indigo', font_size=11,
                                      alpha=0.8, rotate=False)
         plt.show()
@@ -126,7 +173,8 @@ class GraphCreator:
 
 if __name__ == "__main__":
     graph_creator = GraphCreator()
-    G = graph_creator.create_random_weighted_graph()
+    # G = graph_creator.create_default_graph(GraphType.dfs)
+    G = graph_creator.create_random_weighted_graph(size=10, probability=0.35, seed=7)
     graph_creator.plot_weighted_graph(G)
     # for node in G.nodes():
     #     print(G[node])
