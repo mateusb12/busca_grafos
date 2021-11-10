@@ -31,6 +31,7 @@ class GraphCreator:
             aux["degree"] = len(content)
             aux["is_visited"] = False
             aux["color"] = color_table[index]
+            aux["alias"] = index
 
             if weighted:
                 aux["connections"] = {}

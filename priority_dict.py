@@ -16,6 +16,9 @@ class PriorityList:
         else:
             return self.table.pop(index)
 
+    def is_void(self) -> bool:
+        return len(self.table) == 0
+
     def __getitem__(self, item):
         return self.table[item]
 

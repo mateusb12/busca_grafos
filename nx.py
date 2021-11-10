@@ -2,7 +2,7 @@ import collections
 import os
 import random
 from collections import OrderedDict
-from typing import Tuple
+from typing import Tuple, Union
 
 import imageio
 import networkx as nx
@@ -21,9 +21,11 @@ class GraphSearch:
         self.folder = "resources"
         self.filenames = []
         self.priority_queue: PriorityList = PriorityList()
+        self.target_node = None
 
     def save_graph(self):
         filename = self.folder + "/graph_" + str(self.image_index) + ".png"
+        print("Saving [{}]".format(filename))
         plt.savefig(filename)
         self.filenames.append(filename)
         self.image_index += 1
@@ -31,6 +33,7 @@ class GraphSearch:
     def create_gif(self, filename="graph_animation.gif"):
         with imageio.get_writer(self.folder + '/' + filename, mode='I') as writer:
             for filename in self.filenames:
+                print("filename_gif → {}".format(filename))
                 image = imageio.imread(filename)
                 writer.append_data(image)
 
@@ -39,6 +42,7 @@ class GraphSearch:
             os.remove(filename)
 
     def assemble_gif(self, filename="graph_animation.gif"):
+        print("Creating gif [{}]".format(filename))
         self.create_gif(filename)
         self.remove_pictures()
 
@@ -69,9 +73,11 @@ class GraphSearch:
         plt.show()
 
     def draw_squared_graph(self):
+        aux = self.G.nodes
+        alias_dict = {aux[n]["label"]: aux[n]["alias"] for n in aux}
         pos = {(x, y): (y, -x) for x, y in self.G.nodes()}
         raw_colors = [n[1]['color'] for n in self.G.nodes(data=True)]
-        nx.draw(self.G, pos=pos,
+        nx.draw(self.G, pos=pos, labels=alias_dict,
                 node_color=raw_colors, font_color='white',
                 with_labels=True,
                 node_size=600, font_size=11)
@@ -83,7 +89,7 @@ class GraphSearch:
             self.G.nodes[nd]["color"] = "mediumblue"
             self.G.nodes[nd]["is_visited"] = False
 
-    def get_node(self, node_id: int) -> dict:
+    def get_node(self, node_id: Union[int, Tuple[int, int]]) -> dict:
         return self.G.nodes[node_id]
 
     def generate_backtrack_list(self, origin_node: int, target_node: int) -> list:
@@ -136,7 +142,7 @@ class GraphSearch:
             ]
         )
 
-    def depth_first_search(self, origin: int, target: int) -> dict:
+    def depth_first_search(self, origin, target) -> dict:
         n = len(self.G.nodes)
         expanded_nodes = []
         self.dfs_target_node = None
@@ -180,7 +186,7 @@ class GraphSearch:
         current_node = self.get_node(input_node_index)
         parent = current_node["parent"]
         while parent is not None:
-            parent_cost = parent["connections"][current_node_index]
+            parent_cost = self.heuristic_between_two_nodes(current_node["label"], parent["label"])
             total_distance += parent_cost
             current_node = parent
             parent = current_node["parent"]
@@ -200,47 +206,89 @@ class GraphSearch:
         self.G.nodes[node_index]["color"] = new_color
         self.draw_weighted_graph()
 
-    def uniform_cost_search(self, origin: int, target: int) -> dict:
+    def get_node_heuristic(self, node_index: Tuple[int, int]) -> float:
+        a = np.array(node_index)
+        b = np.array(self.target_node)
+        return np.linalg.norm(a-b)
+
+    @staticmethod
+    def heuristic_between_two_nodes(node_a: Tuple[int, int], node_b: Tuple[int, int]) -> float:
+        a = np.array(node_a)
+        b = np.array(node_b)
+        return np.linalg.norm(a-b)
+
+    def evaluate_self_heuristic(self, node_index: Tuple[int, int]):
+        self.G.nodes[node_index]["heuristic"] = self.get_node_heuristic(node_index)
+
+    def evaluate_nearby_heuristics(self, node_index: Tuple[int, int]):
+        current_node = self.G.nodes[node_index]
+        if "heuristic" not in current_node:
+            current_node["heuristic"] = self.get_node_heuristic(node_index)
+        children_indexes = self.G.nodes[node_index]["neighbours"]
+        for child_index in children_indexes:
+            child = self.G.nodes[child_index]
+            child_position = child["label"]
+            if "heuristic" not in child:
+                child["heuristic"] = self.get_node_heuristic(
+                    child_position
+                )
+
+    def uniform_cost_search(self, origin: Tuple[int, int], target: Tuple[int, int]) -> dict:
+        self.target_node = target
         current_index = origin
         origin_node = self.G.nodes[origin]
+        origin_node["color"] = "red"
         origin_node["is_visited"] = True
+        origin_node["alias"] = 0
+        # self.evaluate_nearby_heuristics(origin)
         for children in origin_node["neighbours"]:
             children_node = self.get_node(children)
-            distance = origin_node["connections"][children]
+            children_node["color"] = "orange"
             children_node["parent"] = origin_node
-            children_node["distance_to_origin"] = distance
+            children_node["distance_to_origin"] = int(self.backtrack_distance(children))
+            children_node["alias"] = children_node["distance_to_origin"]
         # self.change_color(origin, "red")
 
         expanded_nodes = []
+        self.priority_queue.add(origin, 0)
 
-        for _ in range(10):
+        while not self.priority_queue.is_void():
             current_node = self.G.nodes[current_index]
             if current_node["label"] == target:
                 current_node["parent"] = self.get_father(current_index)
+                parent = current_node["parent"]
+                path = []
+                while parent is not None:
+                    parent["color"] = "green"
+                    path.append(parent["label"])
+                    parent = parent["parent"]
+                    self.draw_squared_graph()
                 ucs_result = {"target_node": current_node,
-                              "path": self.generate_backtrack_list(origin, target),
-                              "expanded_nodes": []}
+                              "path": path,
+                              "expanded_nodes": expanded_nodes}
                 self.change_color(current_node["label"], "green")
-                return current_node
+                return ucs_result
             parent = current_node["parent"]
             if not parent:
                 current_node["parent"] = self.get_father(current_index)
 
             current_node["is_visited"] = True
             current_neighbours = current_node["neighbours"]
-            current_connections = current_node["connections"]
-            self.change_color(current_node["label"], "red")
+            current_node["color"] = "red"
+            # self.change_color(current_node["label"], "red")
             for neighbour in current_neighbours:
                 neighbour_node = self.G.nodes[neighbour]
                 if neighbour_node["is_visited"] is False:
-                    raw_distance = current_connections[neighbour]
-                    full_distance = raw_distance + current_node["distance_to_origin"]
+                    raw_distance = self.heuristic_between_two_nodes(current_node["label"], neighbour)
+                    full_distance = raw_distance + int(self.backtrack_distance(current_node["label"]))
                     neighbour_node["distance_to_origin"] = full_distance
                     expanded_nodes.append(neighbour)
-                    self.change_color(neighbour, "orange")
+                    neighbour_node["color"] = "orange"
+                    neighbour_node["alias"] = int(neighbour_node["distance_to_origin"])
                     self.priority_queue.add(neighbour, full_distance)
+                    self.draw_squared_graph()
 
-            self.change_color(current_index, "gray")
+            current_node["color"] = "gray"
             new_index = self.priority_queue.pop(0)[0]
             current_index = new_index
 
