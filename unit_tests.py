@@ -1,9 +1,5 @@
-import random
-from matplotlib import pyplot as plt
-
 from graph_generator import GraphCreator, GraphType
 from nx import GraphSearch
-import networkx as nx
 
 
 class GraphTest:
