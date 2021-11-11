@@ -296,6 +296,68 @@ class GraphSearch:
 
         return {None: None}
         
+    
+    def best_first_search(self, origin: Tuple[int, int], target: Tuple[int, int]) -> dict:
+        self.target_node = target
+        current_index = origin
+        origin_node = self.G.nodes[origin]
+        origin_node["color"] = "red"
+        origin_node["is_visited"] = True
+        origin_node["alias"] = 0
+        # self.evaluate_nearby_heuristics(origin)
+        for children in origin_node["neighbours"]:
+            children_node = self.get_node(children)
+            children_node["color"] = "orange"
+            children_node["heuristic"] = None
+            children_node["parent"] = origin_node
+            children_node["distance_to_origin"] = int(self.backtrack_distance(children))
+            children_node["alias"] = children_node["distance_to_origin"]
+        # self.change_color(origin, "red")
+
+        expanded_nodes = []
+        self.priority_queue.add(origin, 0)
+
+        while not self.priority_queue.is_void():
+            current_node = self.G.nodes[current_index]
+            if current_node["label"] == target:
+                current_node["parent"] = self.get_father(current_index)
+                parent = current_node["parent"]
+                path = []
+                while parent is not None:
+                    parent["color"] = "green"
+                    path.append(parent["label"])
+                    parent = parent["parent"]
+                    self.draw_squared_graph()
+                ucs_result = {"target_node": current_node,
+                              "path": path,
+                              "expanded_nodes": expanded_nodes}
+                self.change_color(current_node["label"], "green")
+                return ucs_result
+            parent = current_node["parent"]
+            if not parent:
+                current_node["parent"] = self.get_father(current_index)
+
+            current_node["is_visited"] = True
+            current_neighbours = current_node["neighbours"]
+            current_node["color"] = "red"
+            # self.change_color(current_node["label"], "red")
+            for neighbour in current_neighbours:
+                neighbour_node = self.G.nodes[neighbour]
+                if neighbour_node["is_visited"] is False:
+                    value = self.evaluate_self_heuristic(current_node["label"])
+                    neighbour_node["heuristic"] = value
+                    neighbour_node["color"] = "orange"
+                    neighbour_node["alias"] = neighbour_node["distance_to_origin"]
+                    self.priority_queue.add(neighbour, value)
+                    #self.draw_squared_graph()
+
+            current_node["color"] = "gray"
+            new_index = self.priority_queue.pop(0)[0]
+            current_index = new_index
+
+        return {None: None}        
+
+       
     def a_star_search(self, origin: Tuple[int, int], target: Tuple[int, int]) -> dict:
         self.target_node = target
         current_index = origin
@@ -345,77 +407,17 @@ class GraphSearch:
                 if neighbour_node["is_visited"] is False:
                     raw_distance = self.heuristic_between_two_nodes(current_node["label"], neighbour)
                     heuristicValue = self.evaluate_self_heuristic(current_node["label"])
-                    full_distance = raw_distance + heuristicValue
-                    neighbour_node["heuristic"] = full_distance
+                    distance_to_origin = raw_distance + int(self.backtrack_distance(current_node["label"]))
+                    totalValue = distance_to_origin + heuristicValue
+                    neighbour_node["heuristic"] = totalValue
+                    neighbour_node["distance_to_origin"] = distance_to_origin
                     neighbour_node["color"] = "orange"
-                    neighbour_node["alias"] = neighbour_node["heuristic"]
-                    self.priority_queue.add(neighbour, full_distance)
-                    self.draw_squared_graph()
-
+                    neighbour_node["alias"] = neighbour_node["distance_to_origin"]
+                    expanded_nodes.append(neighbour)
+                    self.priority_queue.add(neighbour, totalValue)
+                    #self.draw_squared_graph()
             current_node["color"] = "gray"
             new_index = self.priority_queue.pop(0)[0]
             current_index = new_index
 
-        return {None: None}
-    
-    
-    def best_first_search(self, origin: Tuple[int, int], target: Tuple[int, int]) -> dict:
-        self.target_node = target
-        current_index = origin
-        origin_node = self.G.nodes[origin]
-        origin_node["color"] = "red"
-        origin_node["is_visited"] = True
-        origin_node["alias"] = 0
-        # self.evaluate_nearby_heuristics(origin)
-        for children in origin_node["neighbours"]:
-            children_node = self.get_node(children)
-            children_node["color"] = "orange"
-            children_node["heuristic"] = None
-            children_node["parent"] = origin_node
-            children_node["distance_to_origin"] = int(self.backtrack_distance(children))
-            children_node["alias"] = children_node["distance_to_origin"]
-        # self.change_color(origin, "red")
-
-        expanded_nodes = []
-        self.priority_queue.add(origin, 0)
-
-        while not self.priority_queue.is_void():
-            current_node = self.G.nodes[current_index]
-            if current_node["label"] == target:
-                current_node["parent"] = self.get_father(current_index)
-                parent = current_node["parent"]
-                path = []
-                while parent is not None:
-                    parent["color"] = "green"
-                    path.append(parent["label"])
-                    parent = parent["parent"]
-                    self.draw_squared_graph()
-                ucs_result = {"target_node": current_node,
-                              "path": path,
-                              "expanded_nodes": expanded_nodes}
-                self.change_color(current_node["label"], "green")
-                return ucs_result
-            parent = current_node["parent"]
-            if not parent:
-                current_node["parent"] = self.get_father(current_index)
-
-            current_node["is_visited"] = True
-            current_neighbours = current_node["neighbours"]
-            current_node["color"] = "red"
-            # self.change_color(current_node["label"], "red")
-            for neighbour in current_neighbours:
-                neighbour_node = self.G.nodes[neighbour]
-                if neighbour_node["is_visited"] is False:
-                    neighbour_node["heuristic"] = self.evaluate_self_heuristic(neighbour)
-                    value = self.evaluate_self_heuristic(current_node["label"])
-                    neighbour_node["heuristic"] = value
-                    neighbour_node["color"] = "orange"
-                    neighbour_node["alias"] = neighbour_node["heuristic"]
-                    self.priority_queue.add(neighbour, value)
-                    self.draw_squared_graph()
-
-            current_node["color"] = "gray"
-            new_index = self.priority_queue.pop(0)[0]
-            current_index = new_index
-
-        return {None: None}
+        return {None: None} 
