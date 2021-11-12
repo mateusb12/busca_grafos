@@ -55,7 +55,6 @@ class GraphTest:
 
 
 gt = GraphTest()
-gt.test_best_first_search()
 gt.test_a_star()
 
 

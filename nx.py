@@ -344,12 +344,15 @@ class GraphSearch:
             for neighbour in current_neighbours:
                 neighbour_node = self.G.nodes[neighbour]
                 if neighbour_node["is_visited"] is False:
-                    value = self.evaluate_self_heuristic(current_node["label"])
-                    neighbour_node["heuristic"] = value
+                    raw_distance = self.heuristic_between_two_nodes(current_node["label"], neighbour)
+                    heuristicValue = self.evaluate_self_heuristic(current_node["label"])
+                    neighbour_node["heuristic"] = heuristicValue
+                    distance_to_origin = raw_distance + int(self.backtrack_distance(current_node["label"]))
+                    neighbour_node["distance_to_origin"] = distance_to_origin
                     neighbour_node["color"] = "orange"
                     neighbour_node["alias"] = neighbour_node["distance_to_origin"]
-                    self.priority_queue.add(neighbour, value)
-                    #self.draw_squared_graph()
+                    self.priority_queue.add(neighbour, heuristicValue)
+                    self.draw_squared_graph()
 
             current_node["color"] = "gray"
             new_index = self.priority_queue.pop(0)[0]
@@ -415,7 +418,7 @@ class GraphSearch:
                     neighbour_node["alias"] = neighbour_node["distance_to_origin"]
                     expanded_nodes.append(neighbour)
                     self.priority_queue.add(neighbour, totalValue)
-                    #self.draw_squared_graph()
+            self.draw_squared_graph()
             current_node["color"] = "gray"
             new_index = self.priority_queue.pop(0)[0]
             current_index = new_index
